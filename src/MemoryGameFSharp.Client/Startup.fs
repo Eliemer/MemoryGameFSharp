@@ -10,7 +10,6 @@ module Program =
     [<EntryPoint>]
     let Main args =
         let builder = WebAssemblyHostBuilder.CreateDefault(args)
-        builder.Services.AddScoped<HttpClient>(fun _ ->
-            new HttpClient(BaseAddress = Uri builder.HostEnvironment.BaseAddress)) |> ignore
+        builder.RootComponents.Add<Main.Main.MyApp>("#main")
         builder.Build().RunAsync() |> ignore
         0
