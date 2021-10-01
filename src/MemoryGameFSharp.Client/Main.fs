@@ -6,7 +6,6 @@ open Elmish
 open Bolero
 open Bolero.Html
 open Cards
-open System.Threading.Tasks
 
 module Main =
 
@@ -28,6 +27,8 @@ module Main =
 
     type Message =
         | Tick of DateTime
+        | StopTimer
+        | StartTimer
         | Restart
         | SelectSize
         | CardContainerMessage of CardContainer.Message
@@ -52,7 +53,18 @@ module Main =
                 div [
                     attr.``class`` "game--timer"
                 ] [
-                    text $"time elapsed: {model.TimeElapsed}"
+                    let timeElapsedString = model.TimeElapsed.ToString(@"mm\:ss\.fff")
+                    text $"time elapsed: {timeElapsedString}"
+                    button [
+                        on.click <| (fun _ -> dispatch StartTimer)
+                    ] [
+                        text "Start Timer"
+                    ]
+                    button [
+                        on.click <| (fun _ -> dispatch StopTimer)
+                    ] [
+                        text "Stop Timer"
+                    ]
                 ]
                 div [
                     attr.``class`` "game--container"
@@ -76,6 +88,12 @@ module Main =
             let (mdl, cmd) = CardContainer.update msg model.CardContainer
             { model with CardContainer = mdl }, cmd
         | Tick now -> { model with TimeElapsed = now - model.TimeStart }, Cmd.none
+        | StopTimer ->
+            model.Timer.Stop()
+            model, Cmd.none
+        | StartTimer ->
+            model.Timer.Start()
+            { model with TimeElapsed = TimeSpan.Zero; TimeStart = DateTime.Now }, Cmd.none
         | _ -> model, Cmd.none
 
     type MyApp() =
