@@ -1,7 +1,7 @@
 namespace Main
 
 open System
-open System.Threading
+open System.Timers
 open Elmish
 open Bolero
 open Bolero.Html
@@ -13,6 +13,7 @@ module Main =
     type Model = 
         { Status : string
           GameActive : bool
+          Timer : Timer
           TimeStart : DateTime
           TimeElapsed : TimeSpan
           CardContainer : CardContainer.Model }
@@ -21,6 +22,7 @@ module Main =
             { Status = ""; 
               GameActive = true
               TimeStart = DateTime.Now 
+              Timer = new Timer(1.0)
               TimeElapsed = TimeSpan.Zero
               CardContainer = CardContainer.Model.Default }
 
@@ -30,15 +32,11 @@ module Main =
         | SelectSize
         | CardContainerMessage of CardContainer.Message
 
-    let timer initModel =
-        let sub dispatch = 
-            async {
-                while true do
-                    do dispatch <| Tick DateTime.Now
-                    do! Async.Sleep(1)
-            } |> Async.RunSynchronously
-
-        Cmd.ofSub sub
+    let timer (initModel : Model) =
+        Cmd.ofSub <| fun dispatch ->
+            let tmr = initModel.Timer
+            tmr.Elapsed.Add ( fun _ -> Tick DateTime.Now |> dispatch )
+            tmr.Start()
 
     let view model dispatch =
         section [] [
